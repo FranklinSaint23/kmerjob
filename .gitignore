@@ -30,8 +30,12 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files — mais pas les modèles .example, destinés à être versionnés
 .env*
+!.env*.example
+
+# config Claude Code personnelle (permissions locales), pas le launch.json partagé
+.claude/settings.local.json
 
 # vercel
 .vercel

@@ -1,36 +1,129 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# KmerJob
 
-## Getting Started
+Plateforme d'emploi camerounaise : recherche d'offres, analyse de CV assistée
+par IA, détection d'annonces frauduleuses, Radar géolocalisé et abonnement
+payable en Mobile Money.
 
-First, run the development server:
+**Stack :** Next.js 16 (App Router) · TypeScript · Tailwind v4 · Supabase
+(Postgres, Auth, Storage, Realtime) · Groq.
+
+---
+
+## Démarrage
+
+### 1. Variables d'environnement
+
+```bash
+cp .env.local.example .env.local
+```
+
+Renseigner :
+
+| Variable | Où la trouver |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API |
+| `SUPABASE_SERVICE_ROLE_KEY` | idem — **serveur uniquement, jamais `NEXT_PUBLIC_`** |
+| `GROQ_API_KEY` | https://console.groq.com/keys |
+
+### 2. Migrations
+
+Exécuter dans le SQL Editor de Supabase, **dans cet ordre** :
+
+1. `supabase/migrations/0001_init.sql` — tables, index, triggers
+2. `supabase/migrations/0002_rls.sql` — Row Level Security + bucket `cvs`
+3. `supabase/migrations/0003_search.sql` — recherche et présélection
+
+Rien ne fonctionne tant que ces trois fichiers ne sont pas passés.
+
+### 3. Lancer
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Architecture
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+app/
+  api/
+    cv/                 dépôt + analyse du CV
+    recommandations/    meilleures offres pour le CV déposé
+    radar/              Radar géolocalisé (réservé aux abonnés)
+lib/
+  ai/
+    groq.ts             client Groq — JSON validé par Zod, une reprise
+    cv-extraction.ts    extraction de CV (Groq, règles en repli)
+    cv-rules.ts         moteur déterministe
+    matching.ts         score déterministe + reclassement sémantique
+    trust.ts            détection d'annonces douteuses
+  supabase/
+    client.ts           navigateur (clé anon, RLS active)
+    server.ts           Server Components / Actions / Route Handlers
+    admin.ts            service_role — contourne RLS, `server-only`
+  cv/extract-text.ts    extraction du texte des PDF
+  geo.ts                villes camerounaises, haversine, score de proximité
+supabase/migrations/    schéma SQL
+```
 
-## Learn More
+## Décisions à connaître
 
-To learn more about Next.js, take a look at the following resources:
+### L'IA ne peut jamais faire tomber le site
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Chaque appel Groq a un repli déterministe (`cv-rules.ts`, `analyzeTrustWithRules`).
+Clé absente, quota atteint, panne : le site sert des résultats moins fins, il ne
+renvoie pas d'erreur. Les réponses exposent `extracted_by` / `analyzed_by` pour
+que l'interface annonce honnêtement le mode utilisé plutôt que de laisser croire
+à une analyse qui n'a pas eu lieu.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Pas d'embeddings, et ce n'est pas un manque
 
-## Deploy on Vercel
+Groq n'expose aucun modèle d'embedding. Le matching fonctionne donc en
+retrieve-then-rerank : Postgres présélectionne ~40 offres par recherche plein
+texte française (indexée, gratuite), puis Groq reclasse cette short-list. Un
+appel LLM sur 40 offres coûte des centimes ; sur 5000 il serait absurde.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+L'extension `pgvector` et les colonnes `embedding` existent déjà mais restent
+NULL — l'ajout d'embeddings est une amélioration possible, pas un prérequis.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Le classement reste majoritairement déterministe
+
+Le score final mélange 60 % de règles explicites et 40 % de LLM. Un modèle seul
+produit des classements instables d'un appel à l'autre et sait justifier de
+façon convaincante une recommandation hors sujet. Cette pondération garde le
+résultat reproductible et explicable à l'utilisateur, poste par poste
+(`breakdown`).
+
+### Fiabilité des annonces : les règles priment
+
+Un signal d'arnaque avéré (frais de dossier, demande de code Mobile Money,
+salaire délirant) rétrograde l'annonce même si le LLM la trouve rassurante. En
+cas de doute, le niveau `moderee` l'emporte sur `verifiee`. Sur-avertir coûte un
+haussement d'épaules ; sous-avertir coûte de l'argent à quelqu'un qui cherche du
+travail.
+
+### Sécurité
+
+RLS activé sur toutes les tables. Les écritures sur `offers`, `subscriptions`,
+`transactions` passent exclusivement par `service_role` : sans cela, n'importe
+qui s'accorderait un abonnement premium depuis la console du navigateur.
+`lib/supabase/admin.ts` importe `server-only`, ce qui fait échouer le build si
+ce module atteint un bundle client.
+
+---
+
+## Reste à faire
+
+- **Interface** : pages accueil, recherche, détail d'offre, dépôt de CV,
+  premium, compte — et les composants associés.
+- **Paiement Dohone** : le flux base de données est prévu (`transactions`,
+  activation d'abonnement), mais l'intégration réelle attend les identifiants
+  marchand de my-dohone.com. Sans eux, aucun code ne peut aboutir — c'est une
+  démarche commerciale, pas technique.
+- **Scraper** : service séparé écrivant dans Postgres via `service_role`.
+  Volontairement hors de Next.js — les timeouts des fonctions serverless
+  s'accordent mal avec du scraping multi-sources.
+- **Jeu d'offres de démonstration** pour tester sans scraper.
+- **Tests** : le scoring de `matching.ts` et les règles de `trust.ts` sont
+  purement fonctionnels et méritent une couverture unitaire.
