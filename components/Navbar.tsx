@@ -53,10 +53,11 @@ export async function Navbar() {
           {isAdmin && (
             <Link
               href="/admin/offres"
-              className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-emerald-100/80 transition-colors hover:bg-white/10 hover:text-white lg:flex"
+              aria-label="Back-office admin"
+              className="flex items-center gap-1.5 rounded-full px-2.5 py-2 text-sm font-medium text-emerald-100/80 transition-colors hover:bg-white/10 hover:text-white sm:px-3"
             >
-              <Shield className="h-4 w-4" strokeWidth={2} />
-              Admin
+              <Shield className="h-4 w-4 shrink-0" strokeWidth={2} />
+              <span className="hidden sm:inline">Admin</span>
             </Link>
           )}
           {user ? (
