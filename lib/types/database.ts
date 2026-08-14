@@ -8,6 +8,9 @@
 
 export type TrustLevel = 'verifiee' | 'moderee' | 'suspecte'
 export type ExtractedBy = 'rules' | 'groq'
+/** 'admin' en plus d'ExtractedBy : une offre saisie au back-office n'est analysée ni par les règles ni par Groq. */
+export type OfferTrustAnalyzedBy = ExtractedBy | 'admin'
+export type UserRole = 'user' | 'admin'
 export type SubscriptionStatus = 'pending' | 'active' | 'expired' | 'cancelled'
 export type TransactionStatus =
   | 'pending'
@@ -39,7 +42,7 @@ export type OfferRow = {
   trust_level: TrustLevel
   trust_score: number
   trust_reasons: string[]
-  trust_analyzed_by: ExtractedBy
+  trust_analyzed_by: OfferTrustAnalyzedBy
   content_hash: string
   embedding: number[] | null
   created_at: string
@@ -71,6 +74,7 @@ export type ProfileRow = {
   full_name: string | null
   phone: string | null
   city: string | null
+  role: UserRole
   created_at: string
   updated_at: string
 }
@@ -165,7 +169,7 @@ type Table<Row, Insert> = {
 export interface Database {
   public: {
     Tables: {
-      profiles: Table<ProfileRow, Insertable<ProfileRow, 'created_at' | 'updated_at'>>
+      profiles: Table<ProfileRow, Insertable<ProfileRow, 'role' | 'created_at' | 'updated_at'>>
       offers: Table<
         OfferRow,
         Insertable<

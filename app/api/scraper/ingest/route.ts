@@ -1,9 +1,10 @@
-import { createHash, timingSafeEqual } from 'node:crypto'
+import { timingSafeEqual } from 'node:crypto'
 
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import { analyzeTrust } from '@/lib/ai/trust'
+import { contentHash } from '@/lib/offers'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export const maxDuration = 60
@@ -37,11 +38,6 @@ const ingestSchema = z.object({
   source: z.string().min(1).max(80),
   offers: z.array(offerInputSchema).max(200),
 })
-
-function contentHash(title: string, company: string, description: string): string {
-  const raw = `${title.trim().toLowerCase()}|${company.trim().toLowerCase()}|${description.trim().toLowerCase()}`
-  return createHash('sha256').update(raw).digest('hex')
-}
 
 function isAuthorized(request: Request): boolean {
   const expected = process.env.SCRAPER_INGEST_TOKEN

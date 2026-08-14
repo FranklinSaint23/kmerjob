@@ -1,8 +1,8 @@
-import { Briefcase, Radar, Sparkles } from 'lucide-react'
+import { Briefcase, Radar, Shield, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 
 import { LogoMark } from '@/components/Logo'
-import { getCurrentUser } from '@/lib/supabase/server'
+import { createClient, getCurrentUser } from '@/lib/supabase/server'
 
 const NAV_LINKS = [
   { href: '/recherche', label: 'Offres', icon: Briefcase },
@@ -20,6 +20,13 @@ const NAV_LINKS = [
  */
 export async function Navbar() {
   const user = await getCurrentUser()
+
+  let isAdmin = false
+  if (user) {
+    const supabase = await createClient()
+    const { data } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
+    isAdmin = data?.role === 'admin'
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-gradient-to-r from-brand-950 to-brand-900 shadow-sm">
@@ -43,6 +50,15 @@ export async function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {isAdmin && (
+            <Link
+              href="/admin/offres"
+              className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-emerald-100/80 transition-colors hover:bg-white/10 hover:text-white lg:flex"
+            >
+              <Shield className="h-4 w-4" strokeWidth={2} />
+              Admin
+            </Link>
+          )}
           {user ? (
             <Link
               href="/compte"

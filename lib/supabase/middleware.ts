@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 /** Routes exigeant une session. Le préfixe suffit (ex. /favoris/xyz). */
-const PROTECTED_PREFIXES = ['/cv', '/radar', '/favoris', '/compte', '/premium/paiement']
+const PROTECTED_PREFIXES = ['/cv', '/radar', '/favoris', '/compte', '/premium/paiement', '/admin']
 
 /** Routes interdites à un utilisateur déjà connecté. */
 const AUTH_ROUTES = ['/connexion', '/inscription']
