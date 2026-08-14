@@ -1,6 +1,7 @@
 import { Briefcase, Radar, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 
+import { LogoMark } from '@/components/Logo'
 import { getCurrentUser } from '@/lib/supabase/server'
 
 const NAV_LINKS = [
@@ -24,9 +25,7 @@ export async function Navbar() {
     <header className="sticky top-0 z-40 border-b border-white/10 bg-gradient-to-r from-brand-950 to-brand-900 shadow-sm">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/10 text-sm font-bold text-white ring-1 ring-inset ring-white/15">
-            K
-          </span>
+          <LogoMark className="h-8 w-8 shrink-0" />
           <span className="text-lg font-bold tracking-tight text-white">KmerJob</span>
         </Link>
 

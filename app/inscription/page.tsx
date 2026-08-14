@@ -4,6 +4,7 @@ import { UserPlus } from 'lucide-react'
 import Link from 'next/link'
 import { useActionState } from 'react'
 
+import { LogoMark } from '@/components/Logo'
 import { signUp, type AuthFormState } from '@/lib/actions/auth'
 import { CITY_NAMES } from '@/lib/geo'
 
@@ -16,9 +17,7 @@ export default function InscriptionPage() {
     <div className="flex flex-1 items-center justify-center bg-zinc-50 px-4 py-16 dark:bg-black">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-lg font-bold text-white shadow-brand">
-            K
-          </span>
+          <LogoMark className="mx-auto h-11 w-11 shadow-brand" />
           <h1 className="mt-4 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
             Crée ton compte
           </h1>

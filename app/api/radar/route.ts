@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import { buildSearchKeywords } from '@/lib/ai/cv-extraction'
 import { matchOffers, radarScore } from '@/lib/ai/matching'
 import { CITY_NAMES } from '@/lib/geo'
-import { hasActiveSubscription } from '@/lib/subscription'
+import { hasActiveSubscription } from '@/lib/subscription-server'
 import { createClient } from '@/lib/supabase/server'
 
 export const maxDuration = 60

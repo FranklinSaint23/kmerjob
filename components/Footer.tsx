@@ -1,6 +1,8 @@
 import { ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
 
+import { LogoMark } from '@/components/Logo'
+
 const COLUMNS = [
   {
     title: 'Candidats',
@@ -23,9 +25,7 @@ export function Footer() {
         <div className="grid gap-10 sm:grid-cols-3">
           <div>
             <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 text-xs font-bold text-white ring-1 ring-inset ring-white/15">
-                K
-              </span>
+              <LogoMark className="h-7 w-7 shrink-0" />
               <span className="text-base font-bold tracking-tight text-white">KmerJob</span>
             </div>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-emerald-100/70">

@@ -1,37 +1,21 @@
-import 'server-only'
-
-import { createClient } from '@/lib/supabase/server'
-
 /**
- * Durée d'un abonnement premium et son prix, en un seul endroit.
- * Le montant est en FCFA entier — jamais de flottant sur de l'argent.
+ * Constantes et calculs purs autour de l'abonnement premium — importables
+ * depuis un composant client comme depuis le serveur.
+ *
+ * `hasActiveSubscription()` (qui a besoin du client Supabase serveur) vit
+ * séparément dans lib/subscription-server.ts : ce fichier-ci ne doit jamais
+ * porter `import 'server-only'`, sous peine de faire échouer `next build` dès
+ * qu'un composant client (ex. app/premium/paiement/page.tsx) importe ne
+ * serait-ce que PREMIUM_PLAN — server-only contamine tout le module qui le
+ * déclare, pas seulement les exports qui en ont réellement besoin.
  */
+
+/** Montant en FCFA entier — jamais de flottant sur de l'argent. */
 export const PREMIUM_PLAN = {
   amountXaf: 2000,
   durationDays: 30,
   label: 'Premium — 30 jours',
 } as const
-
-/**
- * L'utilisateur a-t-il un abonnement actif ?
- *
- * Délègue à la fonction SQL has_active_subscription plutôt que de refaire le
- * calcul en TypeScript : une seule définition de « actif », partagée par le
- * serveur, les policies et le scheduler. Deux implémentations finiraient par
- * diverger, et la divergence donnerait soit du premium gratuit, soit des
- * clients payants bloqués.
- */
-export async function hasActiveSubscription(userId: string): Promise<boolean> {
-  const supabase = await createClient()
-  const { data, error } = await supabase.rpc('has_active_subscription', { uid: userId })
-
-  if (error) {
-    // En cas d'erreur base, refuser l'accès premium plutôt que l'ouvrir.
-    console.error('[subscription] échec de has_active_subscription', error)
-    return false
-  }
-  return data === true
-}
 
 export function premiumExpiryFrom(start: Date = new Date()): Date {
   const expiry = new Date(start)

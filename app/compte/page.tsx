@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Footer } from '@/components/Footer'
 import { Navbar } from '@/components/Navbar'
 import { signOut } from '@/lib/actions/auth'
-import { hasActiveSubscription } from '@/lib/subscription'
+import { hasActiveSubscription } from '@/lib/subscription-server'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 
 export default async function ComptePage() {

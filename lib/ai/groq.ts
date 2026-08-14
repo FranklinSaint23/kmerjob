@@ -108,6 +108,42 @@ export async function callGroqJSON<T>({
   )
 }
 
+interface ChatCompletionOptions {
+  messages: Groq.Chat.ChatCompletionMessageParam[]
+  tools?: Groq.Chat.ChatCompletionTool[]
+  temperature?: number
+  maxTokens?: number
+  timeoutMs?: number
+}
+
+/**
+ * Complétion de chat « libre » : pas de mode JSON forcé (contrairement à
+ * callGroqJSON), utilisée pour une conversation en langage naturel avec appel
+ * d'outils. Une seule tentative — un chatbot qui met deux fois plus de temps à
+ * répondre après un échec transitoire dégrade l'expérience plus qu'il ne
+ * l'améliore ; c'est à l'appelant de proposer un repli.
+ */
+export async function createChatCompletion({
+  messages,
+  tools,
+  temperature = 0.4,
+  maxTokens = 700,
+  timeoutMs = 20_000,
+}: ChatCompletionOptions) {
+  const groq = getClient()
+  try {
+    return await groq.chat.completions.create(
+      { model: MODEL, temperature, max_tokens: maxTokens, messages, tools },
+      { timeout: timeoutMs }
+    )
+  } catch (error) {
+    throw new GroqUnavailableError(
+      `Appel Groq (chat) échoué : ${error instanceof Error ? error.message : String(error)}`,
+      error
+    )
+  }
+}
+
 function isRetryable(error: unknown): boolean {
   if (error instanceof SyntaxError) return true // JSON.parse a échoué
   const status = (error as { status?: number })?.status

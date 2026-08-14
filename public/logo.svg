@@ -1,0 +1,19 @@
+<svg width="240" height="72" viewBox="0 0 240 72" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="kmerjobLogoTitle">
+  <title id="kmerjobLogoTitle">KmerJob</title>
+  <defs>
+    <linearGradient id="kmerjobLogoGradient" x1="4" y1="4" x2="92" y2="92" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#10b981" />
+      <stop offset="1" stop-color="#047857" />
+    </linearGradient>
+  </defs>
+  <g transform="translate(0,4) scale(0.667)">
+    <rect x="4" y="4" width="88" height="88" rx="20" fill="url(#kmerjobLogoGradient)" />
+    <path d="M30,20 L30,76 M30,44 L78,18 M30,50 L46,68 L78,30"
+          fill="none" stroke="#ffffff" stroke-width="9"
+          stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+  <text x="80" y="47" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+        font-size="34" font-weight="800" letter-spacing="-0.5">
+    <tspan fill="#0a0a0a">Kmer</tspan><tspan fill="#059669">Job</tspan>
+  </text>
+</svg>

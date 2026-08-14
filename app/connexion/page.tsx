@@ -3,13 +3,29 @@
 import { LogIn } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { useActionState } from 'react'
+import { Suspense, useActionState } from 'react'
 
+import { LogoMark } from '@/components/Logo'
 import { signIn, type AuthFormState } from '@/lib/actions/auth'
 
 const initialState: AuthFormState = { error: null }
 
+/**
+ * useSearchParams() force Next.js à rendre l'arbre en dessous côté client au
+ * premier chargement, ce qui exige une frontière Suspense explicite lors du
+ * pré-rendu statique — sans elle, `next build` échoue sur cette page (et, sous
+ * Turbopack sur Windows, l'erreur peut se manifester par un crash natif du
+ * worker plutôt qu'un message clair).
+ */
 export default function ConnexionPage() {
+  return (
+    <Suspense fallback={null}>
+      <ConnexionForm />
+    </Suspense>
+  )
+}
+
+function ConnexionForm() {
   const [state, formAction, pending] = useActionState(signIn, initialState)
   const searchParams = useSearchParams()
   const next = searchParams.get('suivant') ?? '/'
@@ -18,9 +34,7 @@ export default function ConnexionPage() {
     <div className="flex flex-1 items-center justify-center bg-zinc-50 px-4 py-16 dark:bg-black">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-lg font-bold text-white shadow-brand">
-            K
-          </span>
+          <LogoMark className="mx-auto h-11 w-11 shadow-brand" />
           <h1 className="mt-4 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
             Content de te revoir
           </h1>
