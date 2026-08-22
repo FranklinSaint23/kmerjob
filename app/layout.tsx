@@ -10,7 +10,13 @@ export const metadata: Metadata = {
   },
   description:
     "Plateforme camerounaise de recherche d'emploi — centralise les offres officielles et informelles sur l'ensemble des 10 régions du Cameroun.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
+
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
