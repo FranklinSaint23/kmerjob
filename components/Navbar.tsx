@@ -1,23 +1,17 @@
-import { Briefcase, Radar, Shield, Sparkles } from 'lucide-react'
+import { Shield } from 'lucide-react'
 import Link from 'next/link'
 
-import { LogoMark } from '@/components/Logo'
+import { Logo } from '@/components/Logo'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 
 const NAV_LINKS = [
-  { href: '/recherche', label: 'Offres', icon: Briefcase },
-  { href: '/cv', label: 'Analyser mon CV', icon: Sparkles },
-  { href: '/premium', label: 'Radar Premium', icon: Radar },
+  { href: '/', label: 'Accueil' },
+  { href: '/recherche', label: 'Offres' },
+  { href: '/guide', label: 'Témoignages & Guide' },
+  { href: '/cv', label: 'Analyser mon CV' },
+  { href: '/premium', label: 'Radar Premium' },
 ] as const
 
-/**
- * Server Component : lit la session côté serveur pour décider connexion vs
- * compte, sans clignotement au chargement (contrairement à un état client qui
- * démarrerait "déconnecté" avant l'hydratation).
- *
- * Fond vert sombre constant (pas de variante claire/sombre) : c'est la couleur
- * de marque, pas une surface qui doit suivre le thème du système.
- */
 export async function Navbar() {
   const user = await getCurrentUser()
 
@@ -29,41 +23,38 @@ export async function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-gradient-to-r from-brand-950 to-brand-900 shadow-sm">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-2.5">
-          <LogoMark className="h-8 w-8 shrink-0" />
-          <span className="text-lg font-bold tracking-tight text-white">KmerJob</span>
-        </Link>
+    <header className="sticky top-0 z-50 border-b border-[#0C2543]/15 bg-[#FBF7EF]/85 backdrop-blur-md">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6">
+        <Logo />
 
-        <nav className="hidden items-center gap-1 md:flex">
-          {NAV_LINKS.map(({ href, label, icon: Icon }) => (
+        <nav className="hidden items-center gap-6 md:flex">
+          {NAV_LINKS.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
-              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-emerald-100/80 transition-colors hover:bg-white/10 hover:text-white"
+              className="text-sm font-semibold text-[#516A82] transition-colors hover:text-[#0C2543] hover:border-b-2 hover:border-[#FF7D00] pb-0.5"
             >
-              <Icon className="h-4 w-4" strokeWidth={2} />
               {label}
             </Link>
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {isAdmin && (
             <Link
               href="/admin/offres"
               aria-label="Back-office admin"
-              className="flex items-center gap-1.5 rounded-full px-2.5 py-2 text-sm font-medium text-emerald-100/80 transition-colors hover:bg-white/10 hover:text-white sm:px-3"
+              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#0C2543] border border-[#0C2543]/20 hover:bg-[#0C2543]/5"
             >
-              <Shield className="h-4 w-4 shrink-0" strokeWidth={2} />
-              <span className="hidden sm:inline">Admin</span>
+              <Shield className="h-4 w-4 text-[#FF7D00]" strokeWidth={2} />
+              <span>Admin</span>
             </Link>
           )}
+
           {user ? (
             <Link
               href="/compte"
-              className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-brand-900 transition-colors hover:bg-emerald-50"
+              className="rounded-xl border border-[#0C2543] bg-white px-4 py-2 text-sm font-bold text-[#0C2543] transition-all hover:bg-[#0C2543] hover:text-white"
             >
               Mon compte
             </Link>
@@ -71,15 +62,15 @@ export async function Navbar() {
             <>
               <Link
                 href="/connexion"
-                className="hidden rounded-full px-3.5 py-2 text-sm font-medium text-emerald-100/80 transition-colors hover:bg-white/10 hover:text-white sm:block"
+                className="hidden text-sm font-bold text-[#0C2543] px-3 py-2 transition-colors hover:text-[#FF7D00] sm:block"
               >
-                Connexion
+                Se connecter
               </Link>
               <Link
-                href="/inscription"
-                className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-brand-900 transition-transform hover:scale-[1.03] active:scale-[0.98]"
+                href="/cv"
+                className="rounded-xl border border-[#FF7D00] bg-[#FF7D00] px-4 py-2 text-sm font-bold text-white shadow-sm transition-transform hover:bg-[#DB6900] hover:scale-[1.02] active:scale-[0.98]"
               >
-                Créer un compte
+                Déposer mon CV
               </Link>
             </>
           )}
@@ -88,3 +79,4 @@ export async function Navbar() {
     </header>
   )
 }
+

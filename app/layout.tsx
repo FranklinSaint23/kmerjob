@@ -3,37 +3,31 @@ import "./globals.css";
 
 import { ChatWidget } from "@/components/chat/ChatWidget";
 
-/*
- * Pas de next/font/google ici.
- *
- * next/font télécharge les fichiers de police depuis fonts.gstatic.com pendant
- * la compilation : le build échoue dès que ce domaine est injoignable (réseau
- * restreint, CI hors ligne, coupure côté Google). Surtout, KmerJob s'adresse à
- * des utilisateurs souvent en données mobiles limitées — une pile de polices
- * système s'affiche immédiatement, sans un octet téléchargé et sans décalage
- * de mise en page au chargement.
- *
- * Si une police de marque devient nécessaire, la bonne voie est next/font/local
- * avec les .woff2 versionnés dans le dépôt : même bénéfice de self-hosting,
- * sans dépendance réseau au moment du build.
- */
-
 export const metadata: Metadata = {
   title: {
-    default: "KmerJob — Trouvez un emploi au Cameroun",
+    default: "KmerJob — L'emploi camerounais, sans détour",
     template: "%s · KmerJob",
   },
   description:
-    "Offres d'emploi au Cameroun, analyse de votre CV et détection des annonces frauduleuses.",
+    "Plateforme camerounaise de recherche d'emploi — centralise les offres officielles et informelles sur l'ensemble des 10 régions du Cameroun.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="min-h-full flex flex-col bg-[#FBF7EF] text-[#0C2543]">
         {children}
         <ChatWidget />
       </body>
     </html>
   );
 }
+

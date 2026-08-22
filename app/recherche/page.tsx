@@ -18,13 +18,17 @@ interface Facets {
 }
 
 async function getFacets(): Promise<Facets | null> {
-  const supabase = await createClient()
-  const { data, error } = await supabase.rpc('offer_facets')
-  if (error) {
-    console.error('[recherche] échec du chargement des facettes', error)
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase.rpc('offer_facets')
+    if (error) {
+      console.error('[recherche] échec du chargement des facettes', error)
+      return null
+    }
+    return data as Facets
+  } catch {
     return null
   }
-  return data as Facets
 }
 
 async function search(params: {
@@ -32,21 +36,25 @@ async function search(params: {
   ville?: string
   secteur?: string
 }): Promise<{ results: SearchOfferRow[]; total: number }> {
-  const supabase = await createClient()
-  const { data, error } = await supabase.rpc('search_offers', {
-    p_query: params.q ?? '',
-    p_location: params.ville || null,
-    p_sector: params.secteur || null,
-    p_limit: 24,
-  })
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase.rpc('search_offers', {
+      p_query: params.q ?? '',
+      p_location: params.ville || null,
+      p_sector: params.secteur || null,
+      p_limit: 24,
+    })
 
-  if (error) {
-    console.error('[recherche] échec de la recherche', error)
+    if (error) {
+      console.error('[recherche] échec de la recherche', error)
+      return { results: [], total: 0 }
+    }
+
+    const results = (data ?? []) as SearchOfferRow[]
+    return { results, total: results[0]?.total_count ?? 0 }
+  } catch {
     return { results: [], total: 0 }
   }
-
-  const results = (data ?? []) as SearchOfferRow[]
-  return { results, total: results[0]?.total_count ?? 0 }
 }
 
 export default async function SearchPage({
@@ -58,49 +66,52 @@ export default async function SearchPage({
   const [facets, { results, total }] = await Promise.all([getFacets(), search(params)])
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex flex-1 flex-col min-h-screen bg-[#FBF7EF] text-[#0C2543]">
       <Navbar />
 
       <main className="flex-1">
-        <div className="border-b border-black/[.06] bg-zinc-50 dark:border-white/[.08] dark:bg-zinc-950">
-          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-              Rechercher une offre
+        <div className="border-b border-[#0C2543]/15 bg-[#F0E9D8]/50">
+          <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+            <h1 className="font-serif text-3xl font-bold text-[#0C2543]">
+              Rechercher une offre d'emploi
             </h1>
-            <div className="mt-5">
-              <SearchBar initialQuery={params.q} />
+            <p className="text-sm text-[#516A82] mt-1">
+              Consultez les annonces vérifiées dans les 10 régions du Cameroun.
+            </p>
+            <div className="mt-4">
+              <SearchBar initialQuery={params.q} initialVille={params.ville} />
             </div>
           </div>
         </div>
 
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[240px_1fr]">
           <aside className="space-y-6">
-            <div className="flex items-center gap-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-              <SlidersHorizontal className="h-4 w-4" strokeWidth={2} />
-              Filtres
+            <div className="flex items-center gap-2 text-sm font-bold text-[#0C2543] border-b border-[#0C2543]/15 pb-2">
+              <SlidersHorizontal className="h-4 w-4 text-[#FF7D00]" strokeWidth={2} />
+              Filtres de recherche
             </div>
 
             <FacetGroup
               label="Ville"
               param="ville"
-              options={facets?.locations ?? []}
+              options={facets?.locations && facets.locations.length > 0 ? facets.locations : ['Douala', 'Yaoundé', 'Bafoussam', 'Bamenda', 'Garoua', 'Maroua', 'Buea']}
               active={params.ville}
               baseParams={params}
             />
             <FacetGroup
               label="Secteur"
               param="secteur"
-              options={facets?.sectors ?? []}
+              options={facets?.sectors && facets.sectors.length > 0 ? facets.sectors : ['Informel & Artisanat', 'Commerce & Vente', 'BÂtiment & Travaux', 'Banque & Finance', 'Technique & Énergie']}
               active={params.secteur}
               baseParams={params}
             />
           </aside>
 
           <div>
-            <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">
+            <p className="mb-5 font-mono text-sm text-[#516A82]">
               {total > 0
-                ? `${total} offre${total > 1 ? 's' : ''} trouvée${total > 1 ? 's' : ''}`
-                : 'Aucun résultat'}
+                ? `${total} offre${total > 1 ? 's' : ''} disponible${total > 1 ? 's' : ''}`
+                : 'Résultats de recherche'}
             </p>
 
             {results.length > 0 ? (
@@ -110,15 +121,15 @@ export default async function SearchPage({
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center rounded-2xl border border-dashed border-black/[.12] px-6 py-16 text-center dark:border-white/[.15]">
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/[.06]">
+              <div className="flex flex-col items-center rounded-2xl border-[1.5px] border-[#0C2543] bg-white px-6 py-16 text-center shadow-sm">
+                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F0E9D8] text-[#0C2543]">
                   <Search className="h-5 w-5" strokeWidth={1.75} />
                 </span>
-                <p className="mt-4 font-medium text-zinc-700 dark:text-zinc-300">
-                  Aucune offre ne correspond à ta recherche
+                <p className="mt-4 font-serif text-lg font-bold text-[#0C2543]">
+                  Aucune offre ne correspond précisément à ta recherche
                 </p>
-                <p className="mt-1 max-w-sm text-sm text-zinc-500 dark:text-zinc-400">
-                  Essaie d&apos;élargir tes filtres ou une autre formulation.
+                <p className="mt-1 max-w-sm text-sm text-[#516A82]">
+                  Essaie d'élargir tes critères de ville ou de secteur d'activité.
                 </p>
               </div>
             )}
@@ -158,8 +169,8 @@ function FacetGroup({
 
   return (
     <div>
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-400">{label}</h3>
-      <ul className="mt-2 space-y-1">
+      <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-[#DB6900] mb-2">{label}</h3>
+      <ul className="space-y-1">
         <FacetLink href={hrefFor(null)} label="Tous" isActive={!active} />
         {options.map((option) => (
           <FacetLink key={option} href={hrefFor(option)} label={option} isActive={active === option} />
@@ -174,10 +185,10 @@ function FacetLink({ href, label, isActive }: { href: string; label: string; isA
     <li>
       <a
         href={href}
-        className={`block rounded-lg px-2.5 py-1.5 text-sm transition-colors ${
+        className={`block rounded-xl px-3 py-1.5 text-sm font-semibold transition-colors ${
           isActive
-            ? 'bg-brand-50 font-medium text-brand-700 dark:bg-brand-500/10 dark:text-brand-400'
-            : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-white/[.06]'
+            ? 'bg-[#0C2543] text-white'
+            : 'text-[#516A82] hover:bg-[#F0E9D8] hover:text-[#0C2543]'
         }`}
       >
         {label}
@@ -185,3 +196,4 @@ function FacetLink({ href, label, isActive }: { href: string; label: string; isA
     </li>
   )
 }
+
